@@ -3,6 +3,13 @@
 /**
  * struct for 每個格子裡的資料
  */
+GtkWidget *vbox;
+GtkWidget *hbox;
+GtkWidget *label;
+GtkWidget *title;
+GtkWidget *start;
+GtkWidget *quit;
+GtkWidget *table;
 struct block
 {
     gint color;     //白色1 黑色2
@@ -134,6 +141,18 @@ void open_block(gint x, gint y)
 
 
 }
+void on_start()
+{
+    g_print ("\n ************\n *  start!  *\n ************\n\n");
+    gtk_widget_hide (table);
+    gtk_widget_hide (start);
+    gtk_widget_hide (quit);
+    gtk_widget_hide (title);
+    gtk_container_remove(GTK_CONTAINER(window), table);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
+	gtk_widget_show(vbox);
+
+}
 
 /**
  * on_mouse_click callback function
@@ -189,10 +208,8 @@ int on_mouse_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
  * main
  */
 int main(int argc, char **argv) {
-	GtkWidget *vbox;
-	GtkWidget *hbox;
-	GtkWidget *label;
-	gint i, j, index;
+    gint i, j, index;
+
 
 	/* initialize GTK library */
 	gtk_init(&argc, &argv);
@@ -205,7 +222,28 @@ int main(int argc, char **argv) {
 	g_signal_connect(G_OBJECT(window), "delete_event", gtk_main_quit, NULL);
 	gtk_window_set_default_size(GTK_WINDOW(window),640,350);
 
-	vbox = gtk_vbox_new(FALSE, 0);
+
+	/*作出標題畫面 */
+	table = gtk_table_new (5, 5, TRUE);
+    gtk_container_add (GTK_CONTAINER (window), table);
+    gtk_widget_show (table);
+
+    title = gtk_label_new("test");
+    gtk_table_attach_defaults (GTK_TABLE (table), title, 1, 4, 0, 2);
+    gtk_widget_show (title);
+
+    start = gtk_button_new_with_label ("START");
+    g_signal_connect (G_OBJECT (start), "clicked",G_CALLBACK (on_start), (gpointer) "start_button");
+    gtk_table_attach_defaults (GTK_TABLE (table), start, 1, 4, 2, 3);
+    gtk_widget_show (start);
+
+    quit = gtk_button_new_with_label ("Quit");
+    g_signal_connect (G_OBJECT (quit), "clicked",G_CALLBACK (gtk_main_quit), NULL);
+    gtk_table_attach_defaults (GTK_TABLE (table), quit, 1, 4, 3, 4);
+    gtk_widget_show (quit);
+    /* 作出標題畫面 */
+
+    vbox = gtk_vbox_new(FALSE, 0);
 
 	/* 存放 label 的第一個 hbox */
 	hbox = gtk_hbox_new(FALSE, 0);
@@ -239,8 +277,6 @@ int main(int argc, char **argv) {
 		gtk_widget_show(hbox);
 	}
 
-	gtk_container_add(GTK_CONTAINER(window), vbox);
-	gtk_widget_show(vbox);
 	gtk_widget_show(window);
 
 	game_init();
