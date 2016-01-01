@@ -12,9 +12,11 @@ GtkWidget *quit;
 GtkWidget *table;
 struct block
 {
-    gint color;     //白色1 黑色2
-    gboolean opened; /* 是否已被掀開 */
+    gint color;     //紅色1 黑色2
+    gint weight;    //代表棋子大小
+    GtkWidget *image;   //儲存棋子的圖
     GtkWidget *button;
+    gboolean opened; /* 是否已被掀開 */ 
 };
 
 /**
@@ -103,13 +105,11 @@ void open_block(gint x, gint y)
 {
     gint index;
     GtkWidget *button;
-
+    GtkWidget *image;
     index = x + y * width;
-
-
-
     button = map[index].button;
-
+    
+    
     /**
      * 改變 button 狀態為按下 .
      * TRUE 是按下, FALSE 則是未按下的狀態
@@ -121,12 +121,18 @@ void open_block(gint x, gint y)
 
     map[index].opened = TRUE; /* 格子狀態為掀開 */
 
-    if (map[index].color == 1 || map[index].color == 2)   /* 暫時先這樣弄 之後只會有32格 每格必有棋子 */
+    if(map[index].color == 1)
     {
-        gchar buf[2];
-        g_snprintf(buf, 2, "%d", map[index].color);
-        gtk_button_set_label(GTK_BUTTON(button), buf);
+        image = gtk_image_new_from_file ("01.png");
+        gtk_button_set_image(GTK_BUTTON(button), image);
     }
+        
+    else if(map[index].color == 2)
+    {
+        image = gtk_image_new_from_file ("02.png");
+        gtk_button_set_image(GTK_BUTTON(button), image);
+    }
+        
 
 
 
