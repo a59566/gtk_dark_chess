@@ -16,7 +16,8 @@ struct block
     gint weight;    //代表棋子大小
     GtkWidget *image;   //儲存棋子的圖
     GtkWidget *button;
-    gboolean opened; /* 是否已被掀開 */ 
+    gboolean opened; /* 是否已被掀開 */
+    gboolean picked_up; //是否被pick up
 };
 
 /**
@@ -28,6 +29,9 @@ static gint height = 4; /* 棋盤區高度 */
 
 static gint red_chess = 16;   //紅色棋子數量
 static gint black_chess = 16;   //黑色棋子數量
+
+static gint turn;   //表示現在是誰的回合 1為先手 2為後手
+static gboolean pick_up;     //是否拿起了棋子
 
 static GtkWidget *red_chess_label; // 顯示剩餘紅色數量
 static GtkWidget *black_chess_label; // 顯示剩餘黑色數量
@@ -187,7 +191,7 @@ void gameover(gboolean won)
 /**
  * 翻開格子 (x,y)
  */
-void open_block(gint x, gint y)
+void open_or_pick(gint x, gint y)
 {
     gint index;
     GtkWidget *button;
@@ -196,24 +200,30 @@ void open_block(gint x, gint y)
     button = map[index].button;
     image =  map[index].image;
     
-    /**
-     * 改變 button 狀態為按下 .
-     * TRUE 是按下, FALSE 則是未按下的狀態
-     */
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
-
-    if (map[index].opened == TRUE) /* 掀開的格子保持按下狀態即可 */
+    
+    //選擇明棋 並移動 
+    if(map[index].opened == TRUE || pick_up == TRUE)
+    {
+        //限定一次只能pick up一個棋子
+        if(!pick_up)
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), FALSE);
+        
+        pick_up = TRUE;
+        map[index].picked_up = TRUE;
+        
         return;
-
-    map[index].opened = TRUE; /* 格子狀態為掀開 */
+    }
+    //選擇暗棋 翻開
+    else
+    {
+        //棋子狀態為掀開 設定棋子圖片
+        map[index].opened = TRUE;
+        gtk_button_set_image(GTK_BUTTON(button), image);
+        //設定按鈕為壓下狀態
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);    
+    }
 
     
-    //設定按鈕圖片
-    gtk_button_set_image(GTK_BUTTON(button), image);
-  
-        
-
-
 
     opened_count++; /* 已掀開的格子又多了一個 */
 
@@ -226,6 +236,32 @@ void open_block(gint x, gint y)
 
 
 }
+
+void move_chess(gint x, gint y)
+{
+    gint index;
+    GtkWidget *button;
+    GtkWidget *image;
+    index = x + y * width;
+    button = map[index].button;
+    image =  map[index].image;
+    
+    //如果選擇pick up的棋子 將棋子放下 pick_up設為FASLE
+    if(map[index].picked_up)
+    {
+        map[index].picked_up = FALSE;
+        pick_up = FALSE;
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+    }
+    else
+    {
+        //限定只能往↑↓←→移動
+        
+    }
+    
+}
+
+
 void on_start()
 {
     g_print ("\n ************\n *  start!  *\n ************\n\n");
@@ -263,17 +299,18 @@ int on_mouse_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 
     switch (event->button)
     {
-    case 1: /* 滑鼠左鍵 */
-        /* 從 index 算出發生事件格子的行列 */
+    case 1: //滑鼠左鍵
+        //從 index 算出發生事件格子的行列
         row = index / width;
         col = index % width;
-        /**
-         * 掀開格子
-         * (使用 open_block() 來掀開指定的格子)
-         * */
-        open_block(col, row);
+        
+        //如果有pick up棋子 執行move_chess 反之執行open_or_pick
+        if(pick_up)
+            move_chess(col, row);
+        else
+            open_or_pick(col, row);
         break;
-    case 2: /* 滑鼠中鍵 */
+    case 2: //滑鼠中鍵
         break;
     case 3: //滑鼠右鍵
             break;
