@@ -26,10 +26,12 @@ static struct block *map; /* 棋盤區資料 */
 static gint width = 8; /* 棋盤區寬度 */
 static gint height = 4; /* 棋盤區高度 */
 
-static gint white_chess = 16;   //黑色棋子數量
-static gint black_chess = 16;   //白色棋子數量
+static gint red_chess = 16;   //紅色棋子數量
+static gint black_chess = 16;   //黑色棋子數量
 
-static GtkWidget *white_chess_label; /* 顯示剩餘白色數量 */
+static GtkWidget *red_chess_label; // 顯示剩餘紅色數量
+static GtkWidget *black_chess_label; // 顯示剩餘黑色數量
+
 static gint button_size = 80; /* button 大小 */
 
 static gint opened_count; /* 已經掀開多少格子 */
@@ -47,25 +49,67 @@ void game_init()
     /* 初始變數值 */
     opened_count = 0;
     game_over = FALSE;
-    white_chess = 16;
+    red_chess = 16;
     black_chess = 16;
 
-    /* 顯示剩餘白色數量*/
+    /* 顯示剩餘紅色數量*/
     gchar buf[4];
-    g_snprintf(buf, 4, "%d", white_chess);
-    gtk_label_set_text(GTK_LABEL(white_chess_label), buf);
+    g_snprintf(buf, 4, "%d", red_chess);
+    gtk_label_set_text(GTK_LABEL(red_chess_label), buf);
 
-    /* 以亂數安置白色棋子*/
+    /* 以亂數安置紅色棋子*/
     gint size = width * height;
     gint i = 0;
-    while (i < white_chess)
+    while (i < red_chess)
     {
         gint index;
         index = g_random_int_range(0, size);
         if (map[index].color == 1 || map[index].color == 2)
             continue;
         map[index].color = 1;
-
+        
+        //寫入權重以及圖片
+        switch(i)
+        {
+            case 0:
+                map[index].weight = 1;  //帥的權重
+                map[index].image = gtk_image_new_from_file ("img/01-01.png");   //帥的圖片
+                break;
+            case 1:
+            case 2:
+                map[index].weight = 2;  //仕的權重
+                map[index].image = gtk_image_new_from_file ("img/01-02.png");   //仕的圖片
+                break;
+            case 3:
+            case 4:
+                map[index].weight = 3;  //相的權重
+                map[index].image = gtk_image_new_from_file ("img/01-03.png");   //相的圖片
+                break;
+            case 5:
+            case 6:
+                map[index].weight = 4;  //俥的權重
+                map[index].image = gtk_image_new_from_file ("img/01-04.png");   //俥的圖片
+                break;
+            case 7:
+            case 8:
+                map[index].weight = 5;  //傌的權重
+                map[index].image = gtk_image_new_from_file ("img/01-05.png");   //傌的圖片
+                break;
+            case 9:
+            case 10:
+                map[index].weight = 6;  //炮的權重
+                map[index].image = gtk_image_new_from_file ("img/01-06.png");   //炮的圖片
+                break;
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            case 15:
+                map[index].weight = 7;  //兵的權重
+                map[index].image = gtk_image_new_from_file ("img/01-07.png");   //兵的圖片
+                break;
+        }
+        
         i++;
     }
      /* 以亂數安置黑色棋子*/
@@ -77,7 +121,49 @@ void game_init()
         if (map[index].color == 1 || map[index].color == 2)
             continue;
         map[index].color = 2;
-
+        
+        //寫入權重
+        switch(i)
+        {
+            case 0:
+                map[index].weight = 1;  //將的權重
+                map[index].image = gtk_image_new_from_file ("img/02-01.png");   //將的圖片
+                break;
+            case 1:
+            case 2:
+                map[index].weight = 2;  //士的權重
+                map[index].image = gtk_image_new_from_file ("img/02-02.png");   //士的圖片
+                break;
+            case 3:
+            case 4:
+                map[index].weight = 3;  //象的權重
+                map[index].image = gtk_image_new_from_file ("img/02-03.png");   //象的圖片
+                break;
+            case 5:
+            case 6:
+                map[index].weight = 4;  //車的權重
+                map[index].image = gtk_image_new_from_file ("img/02-04.png");   //車的圖片
+                break;
+            case 7:
+            case 8:
+                map[index].weight = 5;  //馬的權重
+                map[index].image = gtk_image_new_from_file ("img/02-05.png");   //馬的圖片
+                break;
+            case 9:
+            case 10:
+                map[index].weight = 6;  //包的權重
+                map[index].image = gtk_image_new_from_file ("img/02-06.png");   //包的圖片
+                break;
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            case 15:
+                map[index].weight = 7;  //卒的權重
+                map[index].image = gtk_image_new_from_file ("img/02-07.png");   //卒的圖片
+                break;
+        }
+        
         i++;
     }
 
@@ -108,7 +194,7 @@ void open_block(gint x, gint y)
     GtkWidget *image;
     index = x + y * width;
     button = map[index].button;
-    
+    image =  map[index].image;
     
     /**
      * 改變 button 狀態為按下 .
@@ -121,17 +207,10 @@ void open_block(gint x, gint y)
 
     map[index].opened = TRUE; /* 格子狀態為掀開 */
 
-    if(map[index].color == 1)
-    {
-        image = gtk_image_new_from_file ("01.png");
-        gtk_button_set_image(GTK_BUTTON(button), image);
-    }
-        
-    else if(map[index].color == 2)
-    {
-        image = gtk_image_new_from_file ("02.png");
-        gtk_button_set_image(GTK_BUTTON(button), image);
-    }
+    
+    //設定按鈕圖片
+    gtk_button_set_image(GTK_BUTTON(button), image);
+  
         
 
 
@@ -201,7 +280,7 @@ int on_mouse_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 
         /* 顯示新的地雷數
         g_snprintf(buf, 4, "%d", MAX(0, mines - marked_count));
-        gtk_label_set_text(GTK_LABEL(white_chess_label), buf);*/
+        gtk_label_set_text(GTK_LABEL(red_chess_label), buf);*/
     }
 
     /**
