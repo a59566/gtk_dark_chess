@@ -1,5 +1,5 @@
 #include <gtk/gtk.h>
-
+#include <unistd.h>
 /**
  * struct for 每個格子裡的資料
  */
@@ -19,7 +19,8 @@ struct block
     gboolean opened; /* 是否已被掀開 */
     gboolean picked_up; //是否被pick up
 };
-
+static GtkWidget *label_1; //////////test///////
+static GtkWidget *label_2; //////////test///////
 /**
  * 全域變數
  */
@@ -44,7 +45,7 @@ static gboolean game_over; /* 遊戲是否已結束 */
 
 static GtkWidget *window; /* 主視窗 */
 
-
+gchar buf[8];
 /**
  * game start
  */
@@ -213,7 +214,7 @@ void open_or_pick(gint x, gint y)
         map[index].picked_up = TRUE;
         picked_up_index = index;
         
-        return;
+        
     }
     //選擇暗棋 翻開
     else
@@ -250,6 +251,8 @@ void move_chess(gint x, gint y)
     image =  map[index].image;
     picked_up_image = map[picked_up_index].image;
     
+    
+    
     //如果選擇pick up的棋子 將棋子放下 pick_up設為FASLE
     if(map[index].picked_up)
     {
@@ -263,16 +266,22 @@ void move_chess(gint x, gint y)
         if(index == picked_up_index -1 || index == picked_up_index +1 ||
            index == picked_up_index +8 || index == picked_up_index -8)
         {
-            //翻開移動方向的棋子
-            map[index].opened = TRUE;
-            gtk_button_set_image(GTK_BUTTON(button), image);
+            //翻開移動方向的棋子            
+            if(!map[index].opened)  //第一次翻開時才須設定圖片
+            {
+                 gtk_button_set_image(GTK_BUTTON(button), image);
+                 map[index].opened = TRUE;
+            }
+                
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+           
+           
             
-            //判斷是否能吃對方
+           //判斷是否能吃對方
             if(map[index].weight >= map[picked_up_index].weight &&
                map[index].color != map[picked_up_index].color)    //能吃
             {
-                gtk_button_set_image(GTK_BUTTON(button), NULL);
+                gtk_button_set_image(GTK_BUTTON(map[index].button), NULL);
                 gtk_button_set_image(GTK_BUTTON(map[index].button), picked_up_image);
                 
                 //將picked up的棋子的資料寫到被吃掉的棋子的按鈕 除了button
@@ -282,7 +291,7 @@ void move_chess(gint x, gint y)
                 //map[index].button = gtk_toggle_button_new();
                 map[index].opened = map[picked_up_index].opened;
                 map[index].picked_up = map[picked_up_index].picked_up;
-                
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[index].button), FALSE);
                 
                 
                 
@@ -290,7 +299,7 @@ void move_chess(gint x, gint y)
                 map[picked_up_index].color = 0;
                 map[picked_up_index].weight = 8;    //代表空白 任何棋子都可移動到上面
                 map[picked_up_index].image = NULL;
-                map[picked_up_index].button = gtk_toggle_button_new();
+                //map[picked_up_index].button = gtk_toggle_button_new();
                 map[picked_up_index].opened = TRUE;
                 map[picked_up_index].picked_up = FALSE;
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[picked_up_index].button), TRUE);
@@ -299,9 +308,19 @@ void move_chess(gint x, gint y)
                 picked_up_index = index;
             }
             
+            
+            
         }
         
     }
+    
+    
+    ///////////test//////////////
+    g_snprintf(buf, 4, "%d", index);
+    gtk_label_set_text(GTK_LABEL(label_1), buf);
+    g_snprintf(buf, 4, "%d", picked_up_index);
+    gtk_label_set_text(GTK_LABEL(label_2), buf);  
+    
     
 }
 
@@ -413,8 +432,15 @@ int main(int argc, char **argv) {
 
 	/* 存放 label 的第一個 hbox */
 	hbox = gtk_hbox_new(FALSE, 0);
-	label = gtk_label_new("Mines:");
-	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 4);
+    
+    ////////////////test/////////
+	label_1 = gtk_label_new("0");
+	gtk_box_pack_start(GTK_BOX(hbox), label_1, FALSE, FALSE, 4);
+    label_2 = gtk_label_new("0");//////test////////
+	gtk_box_pack_start(GTK_BOX(hbox), label_2, FALSE, FALSE, 2);//test//
+    
+    
+    
 	gtk_widget_show_all(hbox);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
