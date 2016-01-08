@@ -1,5 +1,5 @@
 #include <gtk/gtk.h>
-
+#include <unistd.h>
 /**
  * struct for 每個格子裡的資料
  */
@@ -19,7 +19,8 @@ struct block
     gboolean opened; /* 是否已被掀開 */
     gboolean picked_up; //是否被pick up
 };
-
+static GtkWidget *label_1; //////////test///////
+static GtkWidget *label_2; //////////test///////
 /**
  * 全域變數
  */
@@ -31,7 +32,8 @@ static gint red_chess = 16;   //紅色棋子數量
 static gint black_chess = 16;   //黑色棋子數量
 
 static gint turn;   //表示現在是誰的回合 1為先手 2為後手
-static gboolean pick_up;     //是否拿起了棋子
+static gboolean pick_up;     //是否pick up棋子
+static gint picked_up_index; //picked up 的棋子的index
 
 static GtkWidget *red_chess_label; // 顯示剩餘紅色數量
 static GtkWidget *black_chess_label; // 顯示剩餘黑色數量
@@ -43,7 +45,7 @@ static gboolean game_over; /* 遊戲是否已結束 */
 
 static GtkWidget *window; /* 主視窗 */
 
-
+gchar buf[8];
 /**
  * game start
  */
@@ -210,8 +212,9 @@ void open_or_pick(gint x, gint y)
         
         pick_up = TRUE;
         map[index].picked_up = TRUE;
+        picked_up_index = index;
         
-        return;
+        
     }
     //選擇暗棋 翻開
     else
@@ -242,9 +245,13 @@ void move_chess(gint x, gint y)
     gint index;
     GtkWidget *button;
     GtkWidget *image;
+    GtkWidget *picked_up_image;
     index = x + y * width;
     button = map[index].button;
     image =  map[index].image;
+    picked_up_image = map[picked_up_index].image;
+    
+    
     
     //如果選擇pick up的棋子 將棋子放下 pick_up設為FASLE
     if(map[index].picked_up)
@@ -256,15 +263,70 @@ void move_chess(gint x, gint y)
     else
     {
         //限定只能往↑↓←→移動
+        if(index == picked_up_index -1 || index == picked_up_index +1 ||
+           index == picked_up_index +8 || index == picked_up_index -8)
+        {
+            //翻開移動方向的棋子            
+            if(!map[index].opened)  //第一次翻開時才須設定圖片
+            {
+                 gtk_button_set_image(GTK_BUTTON(button), image);
+                 map[index].opened = TRUE;
+            }
+                
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+           
+           
+            
+           //判斷是否能吃對方
+            if(map[index].weight >= map[picked_up_index].weight &&
+               map[index].color != map[picked_up_index].color)    //能吃
+            {
+                gtk_button_set_image(GTK_BUTTON(map[index].button), NULL);
+                gtk_button_set_image(GTK_BUTTON(map[index].button), picked_up_image);
+                
+                //將picked up的棋子的資料寫到被吃掉的棋子的按鈕 除了button
+                map[index].color = map[picked_up_index].color;
+                map[index].weight = map[picked_up_index].weight;
+                map[index].image = map[picked_up_index].image;
+                //map[index].button = gtk_toggle_button_new();
+                map[index].opened = map[picked_up_index].opened;
+                map[index].picked_up = map[picked_up_index].picked_up;
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[index].button), FALSE);
+                
+                
+                
+                //設定原本picked up位置的按鈕
+                map[picked_up_index].color = 0;
+                map[picked_up_index].weight = 8;    //代表空白 任何棋子都可移動到上面
+                map[picked_up_index].image = NULL;
+                //map[picked_up_index].button = gtk_toggle_button_new();
+                map[picked_up_index].opened = TRUE;
+                map[picked_up_index].picked_up = FALSE;
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[picked_up_index].button), TRUE);
+                
+                //設定新的picked up index
+                picked_up_index = index;
+            }
+            
+            
+            
+        }
         
     }
+    
+    
+    ///////////test//////////////
+    g_snprintf(buf, 4, "%d", index);
+    gtk_label_set_text(GTK_LABEL(label_1), buf);
+    g_snprintf(buf, 4, "%d", picked_up_index);
+    gtk_label_set_text(GTK_LABEL(label_2), buf);  
+    
     
 }
 
 
 void on_start()
 {
-    g_print ("\n ************\n *  start!  *\n ************\n\n");
     gtk_widget_hide (table);
     gtk_widget_hide (start);
     gtk_widget_hide (quit);
@@ -369,8 +431,15 @@ int main(int argc, char **argv) {
 
 	/* 存放 label 的第一個 hbox */
 	hbox = gtk_hbox_new(FALSE, 0);
-	label = gtk_label_new("Mines:");
-	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 4);
+    
+    ////////////////test/////////
+	label_1 = gtk_label_new("0");
+	gtk_box_pack_start(GTK_BOX(hbox), label_1, FALSE, FALSE, 4);
+    label_2 = gtk_label_new("0");//////test////////
+	gtk_box_pack_start(GTK_BOX(hbox), label_2, FALSE, FALSE, 2);//test//
+    
+    
+    
 	gtk_widget_show_all(hbox);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
