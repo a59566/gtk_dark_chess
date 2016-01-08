@@ -240,6 +240,41 @@ void open_or_pick(gint x, gint y)
 
 }
 
+void eat(int index)
+{
+    GtkWidget *image = map[index].image;
+    GtkWidget *picked_up_image = map[picked_up_index].image;
+    GtkWidget *blank_image = gtk_image_new();
+    
+    
+    gtk_button_set_image(GTK_BUTTON(map[index].button), blank_image);
+    gtk_button_set_image(GTK_BUTTON(map[index].button), picked_up_image);
+    
+    //將picked up的棋子的資料寫到被吃掉的棋子的按鈕 除了button
+    map[index].color = map[picked_up_index].color;
+    map[index].weight = map[picked_up_index].weight;
+    map[index].image = map[picked_up_index].image;
+    //map[index].button = gtk_toggle_button_new();
+    map[index].opened = map[picked_up_index].opened;
+    map[index].picked_up = map[picked_up_index].picked_up;
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[index].button), FALSE);
+    
+    
+    
+    //設定原本picked up位置的按鈕
+    map[picked_up_index].color = 0;
+    map[picked_up_index].weight = 8;    //代表空白 任何棋子都可移動到上面
+    map[picked_up_index].image = blank_image;
+    //map[picked_up_index].button = gtk_toggle_button_new();
+    map[picked_up_index].opened = TRUE;
+    map[picked_up_index].picked_up = FALSE;
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[picked_up_index].button), TRUE);
+    
+    //設定新的picked up index
+    picked_up_index = index;
+    
+}
+
 void move_chess(gint x, gint y)
 {
     gint index;
@@ -258,12 +293,36 @@ void move_chess(gint x, gint y)
     {
         map[index].picked_up = FALSE;
         pick_up = FALSE;
+        picked_up_index = -1;
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
     }
     else
     {
+        //針對"炮" "包" 做特別處理
+        if(map[picked_up_index].weight == 6 && (map[index].color != map[picked_up_index].color))
+        {
+            if(index == picked_up_index -2 || index == picked_up_index +2 || 
+            index == picked_up_index +16 || index == picked_up_index -16)
+            {
+                //翻開移動方向的棋子            
+                if(!map[index].opened)  //第一次翻開時才須設定圖片
+                {
+                    gtk_button_set_image(GTK_BUTTON(button), image);
+                    map[index].opened = TRUE;
+                }
+                    
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+                
+                
+                eat(index);
+                
+            }
+        }
+           
+        
+        
         //限定只能往↑↓←→移動
-        if(index == picked_up_index -1 || index == picked_up_index +1 ||
+        else if(index == picked_up_index -1 || index == picked_up_index +1 ||
            index == picked_up_index +8 || index == picked_up_index -8)
         {
             //翻開移動方向的棋子            
@@ -278,37 +337,28 @@ void move_chess(gint x, gint y)
            
             
            //判斷是否能吃對方
-            if(map[index].weight >= map[picked_up_index].weight &&
-               map[index].color != map[picked_up_index].color)    //能吃
-            {
-                gtk_button_set_image(GTK_BUTTON(map[index].button), NULL);
-                gtk_button_set_image(GTK_BUTTON(map[index].button), picked_up_image);
+           if(map[index].color != map[picked_up_index].color)
+           {
+                //針對"帥" "兵" "將" "卒" 做特別處理
+                if( (map[index].weight == 7 && map[picked_up_index].weight == 1) || 
+                    (map[index].weight == 1 && map[picked_up_index].weight == 7) )
+                {
+                    if(map[index].weight == 7 && map[picked_up_index].weight == 1)
+                        return;
+                    
+                    eat(index);
+                }
+                else if(map[index].weight >= map[picked_up_index].weight)
+                {
+                    eat(index); 
+                }  
                 
-                //將picked up的棋子的資料寫到被吃掉的棋子的按鈕 除了button
-                map[index].color = map[picked_up_index].color;
-                map[index].weight = map[picked_up_index].weight;
-                map[index].image = map[picked_up_index].image;
-                //map[index].button = gtk_toggle_button_new();
-                map[index].opened = map[picked_up_index].opened;
-                map[index].picked_up = map[picked_up_index].picked_up;
-                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[index].button), FALSE);
                 
-                
-                
-                //設定原本picked up位置的按鈕
-                map[picked_up_index].color = 0;
-                map[picked_up_index].weight = 8;    //代表空白 任何棋子都可移動到上面
-                map[picked_up_index].image = NULL;
-                //map[picked_up_index].button = gtk_toggle_button_new();
-                map[picked_up_index].opened = TRUE;
-                map[picked_up_index].picked_up = FALSE;
-                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[picked_up_index].button), TRUE);
-                
-                //設定新的picked up index
-                picked_up_index = index;
-            }
-            
-            
+                    
+           }
+           //else //不能吃
+           
+           
             
         }
         
@@ -316,13 +366,15 @@ void move_chess(gint x, gint y)
     
     
     ///////////test//////////////
-    g_snprintf(buf, 4, "%d", index);
+    g_snprintf(buf, 4, "%d", map[index].opened);
     gtk_label_set_text(GTK_LABEL(label_1), buf);
-    g_snprintf(buf, 4, "%d", picked_up_index);
+    g_snprintf(buf, 4, "%d", pick_up);
     gtk_label_set_text(GTK_LABEL(label_2), buf);  
     
     
 }
+
+
 
 
 void on_start()
