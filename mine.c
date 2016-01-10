@@ -258,13 +258,7 @@ void eat(int index)
     GtkWidget *picked_up_image = map[picked_up_index].image;
     GtkWidget *blank_image = gtk_image_new();
     
-    //翻開移動方向的棋子
-    if(!map[index].opened)  //第一次翻開時才須設定圖片
-    {
-        gtk_button_set_image(GTK_BUTTON(button), image);
-        map[index].opened = TRUE;
-    }
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+    
     
 
     gtk_button_set_image(GTK_BUTTON(map[index].button), blank_image);
@@ -365,6 +359,14 @@ void move_chess(gint x, gint y)
             //同列
             if(index / 8 == picked_up_index / 8)
             {
+                //翻開移動方向的棋子
+                if(!map[index].opened)  //第一次翻開時才須設定圖片
+                {
+                    gtk_button_set_image(GTK_BUTTON(button), image);
+                    map[index].opened = TRUE;
+                }
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+                
                 int tmp;
                 
                 if(index < picked_up_index)
@@ -392,6 +394,14 @@ void move_chess(gint x, gint y)
             //同行
             else if(index % 8 == picked_up_index % 8)
             {
+                //翻開移動方向的棋子
+                if(!map[index].opened)  //第一次翻開時才須設定圖片
+                {
+                    gtk_button_set_image(GTK_BUTTON(button), image);
+                    map[index].opened = TRUE;
+                }
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+                
                 int tmp;
 
                 if(index < picked_up_index)
@@ -430,7 +440,13 @@ void move_chess(gint x, gint y)
         else if(index == picked_up_index -1 || index == picked_up_index +1 ||
                 index == picked_up_index +8 || index == picked_up_index -8)
         {
-            
+            //翻開移動方向的棋子
+            if(!map[index].opened)  //第一次翻開時才須設定圖片
+            {
+                gtk_button_set_image(GTK_BUTTON(button), image);
+                map[index].opened = TRUE;
+            }
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
 
 
 
