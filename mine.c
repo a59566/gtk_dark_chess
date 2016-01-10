@@ -32,6 +32,7 @@ static gint height = 4; /* 棋盤區高度 */
 static gint red_chess = 16;   //紅色棋子數量
 static gint black_chess = 16;   //黑色棋子數量
 
+static gboolean eaten = FALSE;    //是否eat成功
 
 static gint turn = 0;   //表示現在是誰的回合 1為先手 2為後手 初始值為0
 static gboolean pick_up;     //是否pick up棋子
@@ -297,6 +298,9 @@ void eat(int index)
         turn = 2;
     else
         turn = 1;
+        
+        
+    eaten = TRUE;
 }
 
 void red_wins()
@@ -338,8 +342,9 @@ void move_chess(gint x, gint y)
     button = map[index].button;
     image =  map[index].image;
     picked_up_image = map[picked_up_index].image;
+    gboolean open_one = FALSE;  //在此回合中是否翻了棋
     int chess_count = 0;    //計算兩個棋子之間有多少個棋子
-    
+    eaten = FALSE;
     
     //如果選擇pick up的棋子 將棋子放下 pick_up設為FASLE
     if(map[index].picked_up)
@@ -364,6 +369,7 @@ void move_chess(gint x, gint y)
                 {
                     gtk_button_set_image(GTK_BUTTON(button), image);
                     map[index].opened = TRUE;
+                    open_one = TRUE;
                 }
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
                 
@@ -399,6 +405,7 @@ void move_chess(gint x, gint y)
                 {
                     gtk_button_set_image(GTK_BUTTON(button), image);
                     map[index].opened = TRUE;
+                    open_one = TRUE;
                 }
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
                 
@@ -445,6 +452,7 @@ void move_chess(gint x, gint y)
             {
                 gtk_button_set_image(GTK_BUTTON(button), image);
                 map[index].opened = TRUE;
+                open_one = TRUE;
             }
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
 
@@ -477,7 +485,18 @@ void move_chess(gint x, gint y)
         }
 
     }
-
+    
+    //假使翻了棋 換turn
+    if(open_one && !eaten)
+    {
+        if(turn == 1)
+            turn = 2;
+        else
+            turn = 1;
+        picked_up_index = -1;
+        pick_up = FALSE;
+    }
+    
 
     ///////////test//////////////
     g_snprintf(buf, 4, "回合:");
