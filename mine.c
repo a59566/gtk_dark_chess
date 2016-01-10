@@ -485,7 +485,7 @@ void move_chess(gint x, gint y)
         }
 
     }
-    
+    int dd= picked_up_index;
     //假使翻了棋 換turn
     if(open_one && !eaten)
     {
@@ -493,8 +493,13 @@ void move_chess(gint x, gint y)
             turn = 2;
         else
             turn = 1;
-        picked_up_index = -1;
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[picked_up_index].button), TRUE);
+        
+            
+        
         pick_up = FALSE;
+        
+        
     }
     
 
@@ -510,7 +515,7 @@ void move_chess(gint x, gint y)
     
     gtk_label_set_text(GTK_LABEL(label_2), buf);
 
-    printf("red %d black %d\n",red_chess,black_chess);
+    printf("%d\n",dd);
     if(black_chess==0)
         red_wins();
     else if(red_chess==0)
