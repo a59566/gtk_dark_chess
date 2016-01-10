@@ -31,7 +31,7 @@ static gint height = 4; /* 棋盤區高度 */
 
 static gint red_chess = 16;   //紅色棋子數量
 static gint black_chess = 16;   //黑色棋子數量
-int debug = -1;
+int debug = 0;
 
 static gint turn;   //表示現在是誰的回合 1為先手 2為後手
 static gboolean pick_up;     //是否pick up棋子
@@ -307,7 +307,7 @@ void move_chess(gint x, gint y)
     button = map[index].button;
     image =  map[index].image;
     picked_up_image = map[picked_up_index].image;
-    int chess_count = -1;    //計算兩個棋子之間有多少個棋子
+    int chess_count = 0;    //計算兩個棋子之間有多少個棋子
 
 
     //如果選擇pick up的棋子 將棋子放下 pick_up設為FASLE
@@ -332,7 +332,7 @@ void move_chess(gint x, gint y)
 
                 if(index < picked_up_index)
                 {
-                    tmp = index;
+                    tmp = index+1;
                     for(; tmp != picked_up_index; ++tmp)
                     {
                         if(map[tmp].image != NULL)
@@ -344,9 +344,9 @@ void move_chess(gint x, gint y)
 
                     }
                 }
-                else
+                else if(index > picked_up_index)
                 {
-                    tmp = picked_up_index;
+                    tmp = picked_up_index+1;
                     for(; tmp != index; ++tmp)
                     {
                         if(map[tmp].image != NULL)
@@ -368,7 +368,7 @@ void move_chess(gint x, gint y)
 
                 if(index < picked_up_index)
                 {
-                    tmp = index;
+                    tmp = index+1;
                     for(; tmp != picked_up_index; tmp+=8)
                     {
                         if(map[tmp].image != NULL)
@@ -379,9 +379,9 @@ void move_chess(gint x, gint y)
 
                     }
                 }
-                else
+                else if(index > picked_up_index)
                 {
-                    tmp = picked_up_index;
+                    tmp = picked_up_index+1;
                     for(; tmp != index; tmp+=8)
                     {
                         if(map[tmp].image != NULL)
@@ -394,11 +394,12 @@ void move_chess(gint x, gint y)
 
 
             }
-
+            if(map[index].image == NULL)
+                ++chess_count;
 
             if(chess_count == 1)
                 eat(index);
-            chess_count = -1;
+            chess_count = 0;
         }
 
 
