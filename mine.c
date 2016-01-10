@@ -31,7 +31,7 @@ static gint height = 4; /* 棋盤區高度 */
 
 static gint red_chess = 16;   //紅色棋子數量
 static gint black_chess = 16;   //黑色棋子數量
-int debug = -1; 
+int debug = -1;
 
 static gint turn;   //表示現在是誰的回合 1為先手 2為後手
 static gboolean pick_up;     //是否pick up棋子
@@ -177,20 +177,6 @@ void game_init()
 
 }
 
-/**
- * gameover
- */
-void gameover(gboolean won)
-{
-    GtkWidget *dialog;
-    gchar msg[100];
-
-    if (game_over == TRUE)
-        return;
-
-    game_over = TRUE;
-
-}
 
 /**
  * 翻開格子 (x,y)
@@ -284,11 +270,31 @@ void eat(int index)
 
 void red_wins()
 {
+    sleep(1);
+    GtkWidget *window2,*label2;
     gtk_widget_hide (vbox);
+    window2 = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(window2), "Red Wins!");
+    g_signal_connect(GTK_OBJECT(window2), "destroy",G_CALLBACK(gtk_main_quit), NULL);
+    gtk_widget_show(window2);
+    label2=gtk_label_new("Red Wins!");
+    gtk_container_add (GTK_CONTAINER (window2),label2);
+    gtk_widget_show(label2);
+    gtk_main();
 }
 void black_wins()
 {
+    sleep(1);
+    GtkWidget *window2,*label2;
     gtk_widget_hide (vbox);
+    window2 = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(window2), "Black Wins!");
+    g_signal_connect(GTK_OBJECT(window2), "destroy",G_CALLBACK(gtk_main_quit), NULL);
+    gtk_widget_show(window2);
+    label2=gtk_label_new("Black Wins!");
+    gtk_container_add (GTK_CONTAINER (window2),label2);
+    gtk_widget_show(label2);
+    gtk_main();
 }
 
 void move_chess(gint x, gint y)
@@ -302,7 +308,7 @@ void move_chess(gint x, gint y)
     image =  map[index].image;
     picked_up_image = map[picked_up_index].image;
     int chess_count = -1;    //計算兩個棋子之間有多少個棋子
-    
+
 
     //如果選擇pick up的棋子 將棋子放下 pick_up設為FASLE
     if(map[index].picked_up)
@@ -317,13 +323,13 @@ void move_chess(gint x, gint y)
         //針對"炮" "包" 做特別處理
         if(map[picked_up_index].weight == 6 && (map[index].color != map[picked_up_index].color))
         {
-            
+
             //計算到目標位置間的image數 假如只有一個代表與目標間只有一個棋子
             //同列
             if(index / 8 == picked_up_index / 8)
             {
                 int tmp;
-                
+
                 if(index < picked_up_index)
                 {
                     tmp = index;
@@ -334,8 +340,8 @@ void move_chess(gint x, gint y)
                             ++chess_count;
                             ++debug;
                         }
-                            
-                        
+
+
                     }
                 }
                 else
@@ -348,18 +354,18 @@ void move_chess(gint x, gint y)
                             ++chess_count;
                             ++debug;
                         }
-                        
+
                     }
                 }
-                
-                
-                
+
+
+
             }
             //同行
             else if(index % 8 == picked_up_index % 8)
             {
                 int tmp;
-                
+
                 if(index < picked_up_index)
                 {
                     tmp = index;
@@ -370,7 +376,7 @@ void move_chess(gint x, gint y)
                             ++chess_count;
                             ++debug;
                         }
-                        
+
                     }
                 }
                 else
@@ -382,17 +388,17 @@ void move_chess(gint x, gint y)
                         {
                             ++chess_count;
                             ++debug;
-                        }                       
+                        }
                     }
                 }
-                
-                
+
+
             }
-            
-            
+
+
             if(chess_count == 1)
                 eat(index);
-            chess_count = -1;    
+            chess_count = -1;
         }
 
 
@@ -448,9 +454,9 @@ void move_chess(gint x, gint y)
     gtk_label_set_text(GTK_LABEL(label_2), buf);
 
     printf("red %d black %d\n",red_chess,black_chess);
-    if(red_chess==0)
+    if(black_chess==0)
         red_wins();
-    else if(black_chess==0)
+    else if(red_chess==0)
         black_wins();
 }
 
@@ -478,12 +484,6 @@ int on_mouse_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
     gint row, col;
     gchar buf[4];
 
-    /**
-     * 檢查遊戲是否已經結束.
-     * 若遊戲已結束, 玩家按下 button 也沒有反應
-     */
-    if (game_over == TRUE)
-        return TRUE;
 
     /**
      * 將 callback 接收的 data 換成數字的 index 來使用.
