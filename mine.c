@@ -31,7 +31,7 @@ static gint height = 4; /* 棋盤區高度 */
 
 static gint red_chess = 16;   //紅色棋子數量
 static gint black_chess = 16;   //黑色棋子數量
-int debug = 0;
+
 
 static gint turn;   //表示現在是誰的回合 1為先手 2為後手
 static gboolean pick_up;     //是否pick up棋子
@@ -336,12 +336,7 @@ void move_chess(gint x, gint y)
                     for(; tmp < picked_up_index; ++tmp)
                     {
                         if(map[tmp].weight != 8)
-                            {
                             ++chess_count;
-                            ++debug;
-                        }
-
-
                     }
                 }
                 else if(index > picked_up_index)
@@ -350,12 +345,7 @@ void move_chess(gint x, gint y)
                     for(; tmp < index; ++tmp)
                     {
                         if(map[tmp].weight != 8)
-                            {
                             ++chess_count;
-                            ++debug;
-                        }
-
-
                     }
                 }
 
@@ -363,38 +353,31 @@ void move_chess(gint x, gint y)
 
             }
             //同行
-            /*else if(index % 8 == picked_up_index % 8)
+            else if(index % 8 == picked_up_index % 8)
             {
                 int tmp;
 
                 if(index < picked_up_index)
                 {
-                    tmp = index;
+                    tmp = index+8;
                     for(; tmp < picked_up_index; tmp+=8)
                     {
                         if(map[tmp].weight != 8)
-                            {
                             ++chess_count;
-                            ++debug;
-                        }
-
                     }
                 }
                 else if(index > picked_up_index)
                 {
-                    tmp = picked_up_index;
+                    tmp = picked_up_index+8;
                     for(; tmp < index; tmp+=8)
                     {
-                        if(map[tmp].weight != 8)
-                            {
+                       if(map[tmp].weight != 8)
                             ++chess_count;
-                            ++debug;
-                        }
                     }
                 }
 
 
-            }*/
+            }
             
                 
 
@@ -452,7 +435,7 @@ void move_chess(gint x, gint y)
     ///////////test//////////////
     g_snprintf(buf, 4, "%d", chess_count);
     gtk_label_set_text(GTK_LABEL(label_1), buf);
-    g_snprintf(buf, 4, "%d", debug);
+    g_snprintf(buf, 4, "%d", chess_count);
     gtk_label_set_text(GTK_LABEL(label_2), buf);
 
     printf("red %d black %d\n",red_chess,black_chess);
