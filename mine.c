@@ -33,7 +33,7 @@ static gint red_chess = 16;   //紅色棋子數量
 static gint black_chess = 16;   //黑色棋子數量
 
 
-static gint turn;   //表示現在是誰的回合 1為先手 2為後手
+static gint turn = 0;   //表示現在是誰的回合 1為先手 2為後手 初始值為0
 static gboolean pick_up;     //是否pick up棋子
 static gint picked_up_index; //picked up 的棋子的index
 
@@ -189,18 +189,24 @@ void open_or_pick(gint x, gint y)
     index = x + y * width;
     button = map[index].button;
     image =  map[index].image;
-
+    
+    //遊戲第一次開始 決定先手後手的顏色
+    if(turn == 0)
+        turn = map[index].color;
+    
 
     //選擇明棋 並移動
-    if(map[index].opened == TRUE || pick_up == TRUE)
-    {
-        //限定一次只能pick up一個棋子
-        if(!pick_up)
+    if(map[index].opened == TRUE)
+    {        
+        //限定選與turn同色的棋子
+        if(map[index].color == turn)
+        {
+            pick_up = TRUE;
+            map[index].picked_up = TRUE;
+            picked_up_index = index;
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), FALSE);
-
-        pick_up = TRUE;
-        map[index].picked_up = TRUE;
-        picked_up_index = index;
+        }
+        
 
 
     }
@@ -212,8 +218,25 @@ void open_or_pick(gint x, gint y)
         gtk_button_set_image(GTK_BUTTON(button), image);
         //設定按鈕為壓下狀態
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+        
+        //換手
+        if(turn == 1)
+            turn = 2;
+        else
+            turn = 1;
     }
 
+    ///////////test//////////////
+    g_snprintf(buf, 4, "回合:");
+    gtk_label_set_text(GTK_LABEL(label_1), buf);
+    
+    
+    if(turn == 1)
+        g_snprintf(buf, 4, "紅");
+    else
+        g_snprintf(buf, 4, "黑");
+    
+    gtk_label_set_text(GTK_LABEL(label_2), buf);
 
 
     opened_count++; /* 已掀開的格子又多了一個 */
@@ -230,10 +253,19 @@ void open_or_pick(gint x, gint y)
 
 void eat(int index)
 {
+    GtkWidget *button = map[index].button;
     GtkWidget *image = map[index].image;
     GtkWidget *picked_up_image = map[picked_up_index].image;
     GtkWidget *blank_image = gtk_image_new();
-
+    
+    //翻開移動方向的棋子
+    if(!map[index].opened)  //第一次翻開時才須設定圖片
+    {
+        gtk_button_set_image(GTK_BUTTON(button), image);
+        map[index].opened = TRUE;
+    }
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+    
 
     gtk_button_set_image(GTK_BUTTON(map[index].button), blank_image);
     gtk_button_set_image(GTK_BUTTON(map[index].button), picked_up_image);
@@ -249,8 +281,8 @@ void eat(int index)
     map[index].image = map[picked_up_index].image;
     //map[index].button = gtk_toggle_button_new();
     map[index].opened = map[picked_up_index].opened;
-    map[index].picked_up = map[picked_up_index].picked_up;
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[index].button), FALSE);
+    map[index].picked_up = FALSE;
+    
 
 
 
@@ -264,8 +296,13 @@ void eat(int index)
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(map[picked_up_index].button), TRUE);
 
     //設定新的picked up index
-    picked_up_index = index;
-
+    picked_up_index = -1;
+    pick_up = FALSE;
+    
+    if(turn == 1)
+        turn = 2;
+    else
+        turn = 1;
 }
 
 void red_wins()
@@ -323,13 +360,13 @@ void move_chess(gint x, gint y)
         //針對"炮" "包" 做特別處理
         if(map[picked_up_index].weight == 6 && (map[index].color != map[picked_up_index].color))
         {
-
+            
             //計算到目標位置間的image數 假如只有一個代表與目標間只有一個棋子
             //同列
             if(index / 8 == picked_up_index / 8)
             {
                 int tmp;
-
+                
                 if(index < picked_up_index)
                 {
                     tmp = index+1;
@@ -383,6 +420,7 @@ void move_chess(gint x, gint y)
 
             if(chess_count == 1)
                 eat(index);
+                
             chess_count = 0;
         }
 
@@ -392,14 +430,7 @@ void move_chess(gint x, gint y)
         else if(index == picked_up_index -1 || index == picked_up_index +1 ||
                 index == picked_up_index +8 || index == picked_up_index -8)
         {
-            //翻開移動方向的棋子
-            if(!map[index].opened)  //第一次翻開時才須設定圖片
-            {
-                gtk_button_set_image(GTK_BUTTON(button), image);
-                map[index].opened = TRUE;
-            }
-
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+            
 
 
 
@@ -433,9 +464,15 @@ void move_chess(gint x, gint y)
 
 
     ///////////test//////////////
-    g_snprintf(buf, 4, "%d", chess_count);
+    g_snprintf(buf, 4, "回合:");
     gtk_label_set_text(GTK_LABEL(label_1), buf);
-    g_snprintf(buf, 4, "%d", chess_count);
+    
+    
+    if(turn == 1)
+        g_snprintf(buf, 4, "紅");
+    else
+        g_snprintf(buf, 4, "黑");
+    
     gtk_label_set_text(GTK_LABEL(label_2), buf);
 
     printf("red %d black %d\n",red_chess,black_chess);
