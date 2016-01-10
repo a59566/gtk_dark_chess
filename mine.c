@@ -308,8 +308,8 @@ void move_chess(gint x, gint y)
     image =  map[index].image;
     picked_up_image = map[picked_up_index].image;
     int chess_count = 0;    //計算兩個棋子之間有多少個棋子
-
-
+    
+    
     //如果選擇pick up的棋子 將棋子放下 pick_up設為FASLE
     if(map[index].picked_up)
     {
@@ -333,10 +333,10 @@ void move_chess(gint x, gint y)
                 if(index < picked_up_index)
                 {
                     tmp = index+1;
-                    for(; tmp != picked_up_index; ++tmp)
+                    for(; tmp < picked_up_index; ++tmp)
                     {
-                        if(map[tmp].image != NULL)
-                        {
+                        if(map[tmp].weight != 8)
+                            {
                             ++chess_count;
                             ++debug;
                         }
@@ -347,13 +347,14 @@ void move_chess(gint x, gint y)
                 else if(index > picked_up_index)
                 {
                     tmp = picked_up_index+1;
-                    for(; tmp != index; ++tmp)
+                    for(; tmp < index; ++tmp)
                     {
-                        if(map[tmp].image != NULL)
-                        {
+                        if(map[tmp].weight != 8)
+                            {
                             ++chess_count;
                             ++debug;
                         }
+
 
                     }
                 }
@@ -362,17 +363,17 @@ void move_chess(gint x, gint y)
 
             }
             //同行
-            else if(index % 8 == picked_up_index % 8)
+            /*else if(index % 8 == picked_up_index % 8)
             {
                 int tmp;
 
                 if(index < picked_up_index)
                 {
-                    tmp = index+1;
-                    for(; tmp != picked_up_index; tmp+=8)
+                    tmp = index;
+                    for(; tmp < picked_up_index; tmp+=8)
                     {
-                        if(map[tmp].image != NULL)
-                        {
+                        if(map[tmp].weight != 8)
+                            {
                             ++chess_count;
                             ++debug;
                         }
@@ -381,11 +382,11 @@ void move_chess(gint x, gint y)
                 }
                 else if(index > picked_up_index)
                 {
-                    tmp = picked_up_index+1;
-                    for(; tmp != index; tmp+=8)
+                    tmp = picked_up_index;
+                    for(; tmp < index; tmp+=8)
                     {
-                        if(map[tmp].image != NULL)
-                        {
+                        if(map[tmp].weight != 8)
+                            {
                             ++chess_count;
                             ++debug;
                         }
@@ -393,9 +394,9 @@ void move_chess(gint x, gint y)
                 }
 
 
-            }
-            if(map[index].image == NULL)
-                ++chess_count;
+            }*/
+            
+                
 
             if(chess_count == 1)
                 eat(index);
